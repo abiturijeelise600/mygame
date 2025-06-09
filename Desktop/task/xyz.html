@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>xyz - Currency Exchange Platform</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap");
+  :root {
+    --color-primary: #111827;
+    --color-accent: #2563eb;
+    --color-bg: #ffffff;
+    --color-text: #374151;
+    --color-muted: #6b7280;
+    --border-radius: 0.75rem;
+    --shadow-light: 0 4px 8px rgb(0 0 0 / 0.05);
+    --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1rem;
+  }
+  .container {
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 3.5rem;
+    color: var(--color-primary);
+    margin-bottom: 0.25em;
+  }
+  p.subtitle {
+    color: var(--color-muted);
+    font-size: 1.125rem;
+    margin-bottom: 2.5rem;
+  }
+  .card {
+    background: #f9fafb;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    padding: 2rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  label {
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.375rem;
+    display: block;
+    text-align: left;
+    font-size: 0.95rem;
+  }
+  input[type="number"], select {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 0.5rem;
+    transition: border-color var(--transition-fast);
+    font-family: inherit;
+  }
+  input[type="number"]:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 6px var(--color-accent);
+  }
+  .row {
+    display: flex;
+    gap: 1rem;
+  }
+  .row > div {
+    flex: 1;
+  }
+  button.convert-btn {
+    margin-top: 1rem;
+    background: var(--color-accent);
+    color: white;
+    font-weight: 700;
+    font-size: 1.125rem;
+    padding: 0.75rem 0;
+    border: none;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), transform 0.15s ease;
+    user-select: none;
+  }
+  button.convert-btn:hover,
+  button.convert-btn:focus {
+    background: #1e40af;
+    transform: scale(1.04);
+  }
+  button.convert-btn:active {
+    transform: scale(0.98);
+  }
+  .result {
+    margin-top: 2rem;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    min-height: 2em;
+  }
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 2.75rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="Currency exchange platform">
+    <h1>xyz-company</h1>
+    <p class="subtitle">Currency Exchange Platform</p>
+    <section class="card" aria-labelledby="exchange-form-title">
+      <h2 id="exchange-form-title" class="sr-only">Currency exchange form</h2>
+      <label for="amount-input">Amount</label>
+      <input
+        type="number"
+        id="amount-input"
+        name="amount"
+        min="0"
+        step="0.01"
+        value="100"
+        aria-describedby="amount-desc"
+      />
+      <div class="row">
+        <div>
+          <label for="from-currency">From</label>
+          <select id="from-currency" name="from-currency" aria-describedby="from-currency-desc" >
+            <option value="USD" selected>USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="RWF">Rwanda (RWF)</option>
+            <option value="JPY">JPY (¥)</option>
+          </select>
+        </div>
+        <div>
+          <label for="to-currency">To</label>
+          <select id="to-currency" name="to-currency" aria-describedby="to-currency-desc" >
+            <option value="RWF" selected>Rwanda (RWF)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="JPY">JPY (¥)</option>
+          </select>
+        </div>
+      </div>
+      <button class="convert-btn" type="button" id="convert-btn" aria-live="polite" aria-label="Convert currency">Convert</button>
+      <div class="result" id="result" aria-live="polite" aria-atomic="true"></div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const convertBtn = document.getElementById('convert-btn');
+      const amountInput = document.getElementById('amount-input');
+      const fromCurrency = document.getElementById('from-currency');
+      const toCurrency = document.getElementById('to-currency');
+      const resultEl = document.getElementById('result');
+
+      // Example fixed exchange rates relative to 1 USD
+      const exchangeRates = {
+        USD: 1,
+        RWF: 1080, // example rate: 1 USD = 1080 RWF
+        EUR: 0.95,
+        JPY: 140
+      };
+
+      convertBtn.addEventListener('click', () => {
+        const amount = parseFloat(amountInput.value);
+        const from = fromCurrency.value;
+        const to = toCurrency.value;
+
+        if (isNaN(amount) || amount <= 0) {
+          resultEl.textContent = 'Please enter a valid positive amount.';
+          return;
+        }
+        if (!exchangeRates[from] || !exchangeRates[to]) {
+          resultEl.textContent = 'Currency not supported.';
+          return;
+        }
+
+        // Convert amount from "from" currency to USD, then from USD to "to" currency
+        const amountInUSD = amount / exchangeRates[from];
+        const convertedAmount = amountInUSD * exchangeRates[to];
+
+        // Format result
+        const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: to });
+        const formatted = formatter.format(convertedAmount);
+
+        resultEl.textContent = `${amount} ${from} = ${formatted} (${to})`;
+      });
+    })();
+  </script>
+</body>
+</html>
+
